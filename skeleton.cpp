@@ -40,12 +40,14 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+#include <wx/stattext.h>
+#include <wx/statline.h>
 
 //------------------------------------------------------------------------
 // Some constants
 //------------------------------------------------------------------------
-#define APPLICATION_WIDTH	600
-#define APPLICATION_HEIGHT	500 
+#define APPLICATION_WIDTH	900
+#define APPLICATION_HEIGHT	800 
 #define WIDGET_PANEL_WIDTH	150
 #define WIDGET_Y0			30
 #define WIDGET_Y_LINE		70
@@ -70,6 +72,9 @@ enum
 	ID_BUTTON_RECT,
 	ID_BUTTON_CIRCLE,
 	ID_SLIDER_TRANSPARENCY,
+	ID_SLIDER_RED,
+	ID_SLIDER_BLUE,
+	ID_SLIDER_GREEN,
 	ID_COLOUR_PICKER,
 	ID_CHECKBOX1
 };
@@ -152,6 +157,9 @@ class MyControlPanel: public wxPanel
 public:
 	MyControlPanel( wxWindow *parent ) ;
 	int GetSliderValue() {return m_slider->GetValue() ;} ;
+	int GetSliderColorREDValue() {return m_slider_red->GetValue() ;} ;
+	int GetSliderColorGREENValue() {return m_slider_green->GetValue() ;} ;
+	int GetSliderColorBLUEValue() {return m_slider_blue->GetValue() ;} ;
 	bool GetCheckBoxValue() {return m_checkBox->GetValue() ;} ;
 
 private:
@@ -160,6 +168,9 @@ private:
 	void OnCheckBox(wxCommandEvent &event) ;
 	wxButton* m_button ;
 	wxSlider* m_slider ;
+	wxSlider* m_slider_red ;
+	wxSlider* m_slider_green ;
+	wxSlider* m_slider_blue ;
 	wxCheckBox* m_checkBox ;
 };
 
@@ -230,29 +241,41 @@ MyControlPanel::MyControlPanel(wxWindow *parent) : wxPanel(parent)
 	y = WIDGET_Y_CIRCLE ; //Emplacement dans le panneau en fonction de la verticalité
 	m_button = new wxButton(this, ID_BUTTON_CIRCLE, wxT("Circle"), wxPoint(10, y)) ;
 	Bind(wxEVT_BUTTON, &MyControlPanel::OnButton, this, ID_BUTTON_CIRCLE) ;
+
+	y+= 50 ;
+	wxStaticLine *sline1 = new wxStaticLine(this, wxID_ANY, wxPoint(20, y), wxSize(100,2));
 	
-	y+= WIDGET_Y_STEP ;
+	y+= 15 ;
 	wxStaticText* text1 = new wxStaticText(this, wxID_ANY, wxT("Transparency"), wxPoint(10, y)) ;
 	
-	y+= 15 ;
+	y+= 30 ;
 	m_slider = new wxSlider(this, ID_SLIDER_TRANSPARENCY, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
 	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER_TRANSPARENCY) ;	
+
+	y+= 50 ;
+	wxStaticLine *sline2 = new wxStaticLine(this, wxID_ANY, wxPoint(20, y), wxSize(100,2));
 	
-	y+= WIDGET_Y_STEP ;
+	y+= 15 ;
 	wxStaticText* textColor = new wxStaticText(this, wxID_ANY, wxT("Color"), wxPoint(10, y)) ;
-	/*
-	y+= 15 ;
-	m_slider = new wxSlider(this, ID_SLIDER_TRANSPARENCY, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
-	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER_TRANSPARENCY) ;	
+	//wxClientDC dc(this);	
+	//dc.SetBrush(wxColour(77,0,77,255));
+	//wxRect* rect_color = new wxRect(wxPoint(70,y), wxPoint(80, y+10));
 
-	y+= 15 ;
-	m_slider = new wxSlider(this, ID_SLIDER_TRANSPARENCY, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
-	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER_TRANSPARENCY) ;	
+	y+= 30 ;
+	m_slider_red = new wxSlider(this, ID_SLIDER_RED, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
+	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER_RED) ;	
 
-	y+= 15 ;
-	m_slider = new wxSlider(this, ID_SLIDER_TRANSPARENCY, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
-	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER_TRANSPARENCY) ;
-	*/
+	y+= 40 ;
+	m_slider_green = new wxSlider(this, ID_SLIDER_GREEN, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
+	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER_GREEN) ;	
+
+	y+= 40 ;
+	m_slider_blue = new wxSlider(this, ID_SLIDER_BLUE, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
+	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER_BLUE) ;
+	//https://www.wxishiko.com/wxWidgetsTutorials/wxcolourpickerctrl.html
+	
+	y+= 50 ;
+	wxStaticLine *sline3 = new wxStaticLine(this, wxID_ANY, wxPoint(20, y), wxSize(100,2));
 	
 	y+= WIDGET_Y_STEP ;
 	m_checkBox = new wxCheckBox(this, ID_CHECKBOX1, "Show (x,y)", wxPoint(10, y), wxSize(100,20)) ;
@@ -419,11 +442,15 @@ void MyDrawingPanel::OnPaint(wxPaintEvent &event)
 	MyFrame* frame =  (MyFrame*)GetParent() ;
 	int transparency = frame->GetControlPanel()->GetSliderValue() ;
 	bool check = frame->GetControlPanel()->GetCheckBoxValue() ;
+	
+	int col_red = frame->GetControlPanel()->GetSliderColorREDValue() ;
+	int col_green = frame->GetControlPanel()->GetSliderColorGREENValue() ;
+	int col_blue = frame->GetControlPanel()->GetSliderColorBLUEValue() ;
 
 	// then paint
 	wxPaintDC dc(this);	
 	
-	dc.SetBrush(wxColour(255,0,0,transparency));
+	dc.SetBrush(wxColour(col_red,col_green,col_blue,transparency));
 		
 	//LINE AFFICHE quand il a pas le deuxième pt définit
 	if(monControleur->stepShape == 1 && monControleur->btnSelected == ID_BUTTON_LINE){dc.DrawLine(m_mousePoint, m_onePoint) ;}
@@ -466,7 +493,8 @@ void MyDrawingPanel::OpenFile(wxString fileName)
 		//On boucle sur tout le dossier
 		while(!feof(f))
         {
-			int test = fscanf( f, "bhju");
+			int cx;
+			fscanf( f, "cx=\"%d\"", &cx);
 			printf("%i",test);
 			fflush(stdout);
 			//exit(0);
