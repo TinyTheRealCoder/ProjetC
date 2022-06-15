@@ -43,6 +43,14 @@
 #include <wx/stattext.h>
 #include <wx/statline.h>
 
+#include "Point.h"
+#include "Dessin.h"
+#include "Forme.h"
+#include "Rectangle.h"
+#include "Triangle.h"
+#include "Cercle.h"
+#include "Ligne.h"
+
 //------------------------------------------------------------------------
 // Some constants
 //------------------------------------------------------------------------
@@ -95,7 +103,11 @@ class MonControleur{
 	//Fonctions
 	void ResetPts();
 	void SetPts(int stepPt, int x, int y);
+	void AddRectangle();
+	void AddLigne();
+	void AddCercle();
 	MyFrame* GetFrame();
+	void AfficheFormeSaved(wxClientDC dc);
 
 	//Etat des boutons
 	int btnSelected = 0;
@@ -106,6 +118,8 @@ class MonControleur{
 	//Slider Value
 	int sliderTransparency = 0;
 
+	int profondId = 1;
+
 	//Points Temporaires Coordonées
 	int x1 = 0;
 	int y1 = 0;
@@ -113,6 +127,8 @@ class MonControleur{
 	int y2 = 0;
 	int x3 = 0;
 	int y3 = 0;
+
+	Dessin* dessin;
 	
 	private :
 		MyFrame* frame;
@@ -191,6 +207,7 @@ public:
 	//Fonctions
 	void ResetPts();
 	void SetPts(int stepPt, int x, int y);
+	int GetPts(int stepPt, bool isX);
 
 protected:
 	void OnQuit(wxCommandEvent& event);
@@ -409,7 +426,7 @@ void MyDrawingPanel::OnMouseLeftDown(wxMouseEvent &event)
 	
 	switch(monControleur->btnSelected){
 		case ID_BUTTON_LINE :
-			//A chaque nouveau pinceau on definit son action
+			//A chaque nouvelle ligne on definit son action
 			if(monControleur->stepShape == 0){
 				monControleur->ResetPts();
 				monControleur->SetPts(monControleur->stepShape, m_onePoint.x, m_onePoint.y);
@@ -418,6 +435,7 @@ void MyDrawingPanel::OnMouseLeftDown(wxMouseEvent &event)
 			else{
 				monControleur->SetPts(monControleur->stepShape, m_onePoint.x, m_onePoint.y);
 				monControleur->stepShape = 0;
+				monControleur->AddLigne();
 			}
 			break;
 		case ID_BUTTON_RECT :
@@ -430,6 +448,7 @@ void MyDrawingPanel::OnMouseLeftDown(wxMouseEvent &event)
 			else{
 				monControleur->SetPts(monControleur->stepShape, m_onePoint.x, m_onePoint.y);
 				monControleur->stepShape = 0;
+				monControleur->AddRectangle();
 			}
 			break;
 		case ID_BUTTON_CIRCLE :
@@ -443,19 +462,12 @@ void MyDrawingPanel::OnMouseLeftDown(wxMouseEvent &event)
 				monControleur->SetPts(monControleur->stepShape, m_onePoint.x, m_onePoint.y);
 				//CREATION
 				monControleur->stepShape = 0;
+				monControleur->AddCercle();
 			}
 			break;
 		default:
 			break;
 	}
-
-	/*
-	wxClientDC dc(this);	
-	wxPoint* m2 = new wxPoint();;
-	m2->x = m_mousePoint.x + 50;
-	m2->y = m_mousePoint.y + 50;
-	dc.DrawLine(m_mousePoint, m_onePoint) ;
-	*/
 
 	Refresh() ; // send an event that calls the OnPaint method
 }
@@ -479,28 +491,30 @@ void MyDrawingPanel::OnPaint(wxPaintEvent &event)
 	// then paint
 	wxPaintDC dc(this);	
 
+	///Affichage de toutes les formes crées///
+	moncontroleur->AfficheFormeSaved();
 
-	
+	///Affiche de la forme en cours de creation///
 	dc.SetBrush(wxColour(col_red,col_green,col_blue,transparency));
 		
 	//LINE AFFICHE quand il a pas le deuxième pt définit
 	if(monControleur->stepShape == 1 && monControleur->btnSelected == ID_BUTTON_LINE){dc.DrawLine(m_mousePoint, m_onePoint) ;}
 	//LINE AFFICHE
-	if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_LINE){dc.DrawLine(*monControleur->GetFrame()->m_PointTmp1, *monControleur->GetFrame()->m_PointTmp2) ;}
+	//if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_LINE){dc.DrawLine(*monControleur->GetFrame()->m_PointTmp1, *monControleur->GetFrame()->m_PointTmp2) ;}
 
 	//RECT AFFICHE quand il a pas le deuxième pt définit
 	if(monControleur->stepShape == 1 && monControleur->btnSelected == ID_BUTTON_RECT){dc.DrawRectangle(wxPoint(monControleur->GetFrame()->m_PointTmp1->x, monControleur->GetFrame()->m_PointTmp1->y), wxSize(m_mousePoint.x-monControleur->GetFrame()->m_PointTmp1->x,m_mousePoint.y-monControleur->GetFrame()->m_PointTmp1->y)) ;}
 	//RECT AFFICHE
-	if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_RECT){dc.DrawRectangle(wxPoint(monControleur->GetFrame()->m_PointTmp1->x, monControleur->GetFrame()->m_PointTmp1->y), wxSize(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x,monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y)) ;}
+	//if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_RECT){dc.DrawRectangle(wxPoint(monControleur->GetFrame()->m_PointTmp1->x, monControleur->GetFrame()->m_PointTmp1->y), wxSize(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x,monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y)) ;}
 	
 	//CIRCLE AFFICHE quand il a pas le deuxième pt définit
 	if(monControleur->stepShape == 1 && monControleur->btnSelected == ID_BUTTON_CIRCLE){dc.DrawCircle(wxPoint(*monControleur->GetFrame()->m_PointTmp1), sqrt(pow(m_mousePoint.x-monControleur->GetFrame()->m_PointTmp1->x, 2) + pow(m_mousePoint.y-monControleur->GetFrame()->m_PointTmp1->y, 2))) ;}
 	//CIRCLE AFFICHE
-	if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_CIRCLE){dc.DrawCircle(wxPoint(*monControleur->GetFrame()->m_PointTmp1), sqrt(pow(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x, 2) + pow(monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y, 2))) ;}
+	//if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_CIRCLE){dc.DrawCircle(wxPoint(*monControleur->GetFrame()->m_PointTmp1), sqrt(pow(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x, 2) + pow(monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y, 2))) ;}
 	
-	//A FAIRE REAFICHER TOUT SELOint col_red = frame->GetControlPanel()->GetSliderColorREDValue() ;
+	///Affichage du curseur///
 	dc.SetBrush(*wxWHITE);
-	dc.SetPen(*wxRED);
+	//dc.SetPen(*wxRED);
 	dc.DrawCircle(wxPoint(m_mousePoint),5);
 
 	if (check)
@@ -709,6 +723,40 @@ void MyFrame::SetPts(int stepPt, int x, int y)
 	}
 }
 
+//------------------------------------------------------------------------
+int MyFrame::GetPts(int stepPt, bool isX)
+//------------------------------------------------------------------------
+{
+	switch(stepPt){
+		case 0:
+			if(isX){
+				return m_PointTmp1->x;
+			}
+			else{
+				return m_PointTmp1->y;
+			}
+			break;
+		case 1:
+			if(isX){
+				return m_PointTmp2->x;
+			}
+			else{
+				return m_PointTmp2->y;
+			}
+			break;
+		case 2:
+			if(isX){
+				return m_PointTmp3->x;
+			}
+			else{
+				return m_PointTmp3->y;
+			}
+			break;
+		default:
+			break;
+	}
+}
+
 //************************************************************************
 //************************************************************************
 // Application class
@@ -731,6 +779,7 @@ bool MyApp::OnInit()
 MonControleur::MonControleur(){
 	frame = new MyFrame(wxT(APP_NAME), wxDefaultPosition, wxSize(APPLICATION_WIDTH,APPLICATION_HEIGHT)) ;
 	frame->Show(true) ;
+	dessin = new Dessin();
 }
 
 MonControleur::~MonControleur(){
@@ -761,8 +810,34 @@ void MonControleur::SetPts(int stepPt, int x, int y){
 	frame->SetPts(stepPt, x, y);
 } 
 
+void MonControleur::AddRectangle(){
+	const Point* p1 = new Point(frame->GetPts(0, true), frame->GetPts(0, false));
+	dessin->addVector(new Rectangle (*p1, frame->GetPts(1, true)-frame->GetPts(0, true), frame->GetPts(1, false)-frame->GetPts(0, false), profondId, "Rectangle"));
+	profondId++;
+}
+
+void MonControleur::AddLigne(){
+	const Point* p1 = new Point(frame->GetPts(0, true), frame->GetPts(0, false));
+	const Point* p2 = new Point(frame->GetPts(1, true), frame->GetPts(1, false));
+	dessin->addVector(new Ligne (*p1, *p2, profondId, "Ligne"));
+	profondId++;
+}
+
+void MonControleur::AddCercle(){
+	const Point* p1 = new Point(frame->GetPts(0, true), frame->GetPts(0, false));
+	const Point* p2 = new Point(frame->GetPts(1, true), frame->GetPts(1, false));
+	dessin->addVector(new Cercle (*p1, sqrt(pow(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x, 2) + pow(monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y, 2)), profondId, "Cercle"));
+	profondId++;
+}
+
 MyFrame* MonControleur::GetFrame(){
 	return frame;
 } 
+
+void MonControleur::AfficheFormeSaved(wxClientDC dc){
+	for(Forme forme : dessin->getVector()){
+		forme->draw(dc);
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////////

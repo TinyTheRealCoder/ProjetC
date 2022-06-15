@@ -12,4 +12,8 @@ include(${wxWidgets_USE_FILE})
 # add the executable
 add_executable(skeleton skeleton.cpp models/Point.cpp models/Forme.cpp models/Dessin.cpp models/Ligne.cpp models/Rectangle.cpp models/Triangle.cpp models/Cercle.cpp)
 include_directories(models)
+<<<<<<< HEAD
 target_link_libraries(skeleton ${wxWidgets_LIBRARIES})
+=======
+target_link_libraries(skeleton ${wxWidgets_LIBRARIES})
+>>>>>>> 0dcd8b0a9b3e42540e50bd68bb6aaf6dddea6630
