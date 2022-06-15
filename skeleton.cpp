@@ -43,6 +43,13 @@
 #include <wx/stattext.h>
 #include <wx/statline.h>
 
+#include "models/Forme.h"
+#include "models/Dessin.h"
+#include "models/Cercle.h"
+#include "models/Rectangle.h"
+#include "models/Ligne.h"
+#include "models/Triangle.h"
+
 //------------------------------------------------------------------------
 // Some constants
 //------------------------------------------------------------------------
@@ -470,6 +477,7 @@ void MyDrawingPanel::OnPaint(wxPaintEvent &event)
 	//A FAIRE REAFICHER TOUT SELON LORDRE
 
 	dc.SetBrush(*wxWHITE);
+	dc.SetPen(*wxRED);
 	dc.DrawCircle(wxPoint(m_mousePoint), 10/2) ;
 	
 	if (check)
