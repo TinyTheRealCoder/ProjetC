@@ -32,7 +32,7 @@ public:
     int GetX2();
     int GetY1();
     int GetY2();
-
+    
     void draw(wxClientDC drawC) override;
 
 private:    // Could be protected

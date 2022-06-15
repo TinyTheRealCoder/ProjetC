@@ -5,17 +5,6 @@
 #include <string>
 #include <iostream>
 
-#include "wx/wxprec.h"
-
-#ifndef WX_PRECOMP
-    #include "wx/wx.h"
-#endif
-
-#include<wx/filedlg.h>
-#include <wx/image.h>
-#include <wx/file.h>
-#include <wx/bitmap.h>
-
 class Forme
 {
 public:
@@ -34,7 +23,6 @@ public:
     
     void SetIndProfond(int IndProfondeur);
     int GetIndProfond() const; 
-
     virtual void draw(wxClientDC drawC) = 0;
 
     // M�thodes virtuelles � d�clarer dans les classes filles

@@ -1,35 +1,12 @@
 #ifndef __POINT_H__
 #define __POINT_H__
 
-#include "Forme.h"
-#include <iostream>
-#include <cstdlib>
-
-#define _USE_MATH_DEFINES   // To include PI value
-#include <math.h>
-
-#ifndef WX_PRECOMP
-    #include "wx/wx.h"
-#endif
-
-#include<wx/filedlg.h>
-#include <wx/image.h>
-#include <wx/file.h>
-#include <wx/bitmap.h>
-#include <bits/stdc++.h>
-#include <string> 
-#include <cstdlib>
-#include <iostream>
-#include <vector>
-#include <wx/stattext.h>
-#include <wx/statline.h>
-
 //-------------------------------------------
-class Point : public Forme
+class Point
 //-------------------------------------------
 {
 public:                        // interface publique de la classe
-    Point();                   // constructeur par dï¿½faut
+    Point();                   // constructeur par défaut
     Point(int x, int y);       // constructeur
     Point(int z);              // constructeur (x = y)
     ~Point();                  // destructeur
@@ -43,23 +20,21 @@ public:                        // interface publique de la classe
     int GetX() const;
     int GetY() const;
 
-    // Mï¿½thodes const (qui ne modifie pas l'objet)
-    void Display() const;      // affiche les coordonnï¿½es du point
+    // Méthodes const (qui ne modifie pas l'objet)
+    void Display() const;      // affiche les coordonnées du point
     bool XEgalY() const;
     float Distance(const Point &p) const;
     float Distance(const Point *p) const;
 
-    // Mï¿½thode statique
+    // Méthode statique
     static int GetPointCount(); // retourne le nombre de point
 
-    void draw(wxClientDC drawC) override;
-
-private:                        // invisible ï¿½ l?utilisateur de la classe
-    int m_x;                    // les coordonnï¿½es
+private:                        // invisible à l?utilisateur de la classe
+    int m_x;                    // les coordonnées
     int m_y;                    // du point
 
     // Attribut statique
-    static int m_pointCount;    // donnï¿½e commune ï¿½ tous les objets
+    static int m_pointCount;    // donnée commune à tous les objets
 };
 
-#endif // __POINT_H__ : retour ï¿½ la ligne obligatoire pour certains compilateurs
+#endif // __POINT_H__ : retour à la ligne obligatoire pour certains compilateurs
