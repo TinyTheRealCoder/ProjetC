@@ -259,7 +259,7 @@ MyControlPanel::MyControlPanel(wxWindow *parent) : wxPanel(parent)
 	wxStaticText* textColor = new wxStaticText(this, wxID_ANY, wxT("Color"), wxPoint(10, y)) ;
 	//wxClientDC dc(this);	
 	//dc.SetBrush(wxColour(77,0,77,255));
-	//wxRect* rect_color = new wxRect(wxPoint(70,y), wxPoint(80, y+10));
+    //wxRect* rect_color = new wxRect(wxPoint(70,y), wxPoint(80, y+10));
 
 	y+= 30 ;
 	m_slider_red = new wxSlider(this, ID_SLIDER_RED, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
@@ -280,6 +280,16 @@ MyControlPanel::MyControlPanel(wxWindow *parent) : wxPanel(parent)
 	y+= WIDGET_Y_STEP ;
 	m_checkBox = new wxCheckBox(this, ID_CHECKBOX1, "Show (x,y)", wxPoint(10, y), wxSize(100,20)) ;
 	Bind(wxEVT_CHECKBOX, &MyControlPanel::OnCheckBox, this, ID_CHECKBOX1) ;	
+
+	MyFrame* frame = (MyFrame*)GetParent() ;
+	//int col_red = frame->GetControlPanel()->GetSliderColorREDValue() ;
+	//int col_green = frame->GetControlPanel()->GetSliderColorGREENValue() ;
+	//int col_blue = frame->GetControlPanel()->GetSliderColorBLUEValue() ;
+	wxClientDC dc(this);
+	dc.SetBrush(*wxBLACK);
+	dc.DrawRectangle(wxPoint(10,10), wxSize(20,20));
+	dc.SetBrush(wxColour(0,255,0,255));
+	dc.DrawRectangle(wxPoint(12,12), wxSize(16,16));
 }
 
 //------------------------------------------------------------------------
@@ -316,7 +326,9 @@ void MyControlPanel::OnButton(wxCommandEvent &event)
 	monControleur->stepShape = 0;
 	monControleur->ResetPts();
 
+
 	Refresh();
+
 
 }
 
@@ -325,14 +337,31 @@ void MyControlPanel::OnSlider(wxScrollEvent &event)
 //------------------------------------------------------------------------
 {
 	MyFrame* frame = (MyFrame*)GetParent() ;
+	int col_red = frame->GetControlPanel()->GetSliderColorREDValue() ;
+	int col_green = frame->GetControlPanel()->GetSliderColorGREENValue() ;
+	int col_blue = frame->GetControlPanel()->GetSliderColorBLUEValue() ;
+	wxClientDC dc(this);
+	dc.SetBrush(*wxBLACK);
+	dc.DrawRectangle(wxPoint(10,10), wxSize(20,20));
+	dc.SetBrush(wxColour(col_red,col_green,col_blue,255));
+	dc.DrawRectangle(wxPoint(12,12), wxSize(16,16));
 	frame->RefreshDrawing() ;	// update the drawing panel
 }
+
 
 //------------------------------------------------------------------------
 void MyControlPanel::OnCheckBox(wxCommandEvent &event)
 //------------------------------------------------------------------------
 {
 	MyFrame* frame = (MyFrame*)GetParent() ;
+	int col_red = frame->GetControlPanel()->GetSliderColorREDValue() ;
+	int col_green = frame->GetControlPanel()->GetSliderColorGREENValue() ;
+	int col_blue = frame->GetControlPanel()->GetSliderColorBLUEValue() ;
+	wxClientDC dc(this);
+	dc.SetBrush(*wxBLACK);
+	dc.DrawRectangle(wxPoint(10,10), wxSize(20,20));
+	dc.SetBrush(wxColour(col_red,col_green,col_blue,255));
+	dc.DrawRectangle(wxPoint(12,12), wxSize(16,16));
 	frame->RefreshDrawing() ;	// update the drawing panel
 }
 
@@ -449,6 +478,8 @@ void MyDrawingPanel::OnPaint(wxPaintEvent &event)
 
 	// then paint
 	wxPaintDC dc(this);	
+
+
 	
 	dc.SetBrush(wxColour(col_red,col_green,col_blue,transparency));
 		
@@ -467,12 +498,13 @@ void MyDrawingPanel::OnPaint(wxPaintEvent &event)
 	//CIRCLE AFFICHE
 	if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_CIRCLE){dc.DrawCircle(wxPoint(*monControleur->GetFrame()->m_PointTmp1), sqrt(pow(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x, 2) + pow(monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y, 2))) ;}
 	
-	//A FAIRE REAFICHER TOUT SELON LORDRE
-
+	//A FAIRE REAFICHER TOUT SELOint col_red = frame->GetControlPanel()->GetSliderColorREDValue() ;
 	dc.SetBrush(*wxWHITE);
-	dc.DrawCircle(wxPoint(m_mousePoint), 10/2) ;
-	
+	dc.SetPen(*wxRED);
+	dc.DrawCircle(wxPoint(m_mousePoint),5);
+
 	if (check)
+
 	{
 		wxString coordinates ;
 		coordinates.sprintf(wxT("(%d,%d)"), m_mousePoint.x, m_mousePoint.y) ;
@@ -734,5 +766,3 @@ MyFrame* MonControleur::GetFrame(){
 } 
 
 //////////////////////////////////////////////////////////////////////////////
-
-
