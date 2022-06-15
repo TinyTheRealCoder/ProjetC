@@ -107,6 +107,7 @@ class MonControleur{
 	void AddLigne();
 	void AddCercle();
 	MyFrame* GetFrame();
+	void AfficheFormeSaved(wxClientDC dc);
 
 	//Etat des boutons
 	int btnSelected = 0;
@@ -468,14 +469,6 @@ void MyDrawingPanel::OnMouseLeftDown(wxMouseEvent &event)
 			break;
 	}
 
-	/*
-	wxClientDC dc(this);	
-	wxPoint* m2 = new wxPoint();;
-	m2->x = m_mousePoint.x + 50;
-	m2->y = m_mousePoint.y + 50;
-	dc.DrawLine(m_mousePoint, m_onePoint) ;
-	*/
-
 	Refresh() ; // send an event that calls the OnPaint method
 }
 
@@ -498,31 +491,30 @@ void MyDrawingPanel::OnPaint(wxPaintEvent &event)
 	// then paint
 	wxPaintDC dc(this);	
 
+	///Affichage de toutes les formes crées///
+	moncontroleur->AfficheFormeSaved();
 
-	
+	///Affiche de la forme en cours de creation///
 	dc.SetBrush(wxColour(col_red,col_green,col_blue,transparency));
 		
 	//LINE AFFICHE quand il a pas le deuxième pt définit
 	if(monControleur->stepShape == 1 && monControleur->btnSelected == ID_BUTTON_LINE){dc.DrawLine(m_mousePoint, m_onePoint) ;}
 	//LINE AFFICHE
-	if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_LINE){dc.DrawLine(*monControleur->GetFrame()->m_PointTmp1, *monControleur->GetFrame()->m_PointTmp2) ;}
+	//if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_LINE){dc.DrawLine(*monControleur->GetFrame()->m_PointTmp1, *monControleur->GetFrame()->m_PointTmp2) ;}
 
 	//RECT AFFICHE quand il a pas le deuxième pt définit
 	if(monControleur->stepShape == 1 && monControleur->btnSelected == ID_BUTTON_RECT){dc.DrawRectangle(wxPoint(monControleur->GetFrame()->m_PointTmp1->x, monControleur->GetFrame()->m_PointTmp1->y), wxSize(m_mousePoint.x-monControleur->GetFrame()->m_PointTmp1->x,m_mousePoint.y-monControleur->GetFrame()->m_PointTmp1->y)) ;}
 	//RECT AFFICHE
-	if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_RECT){dc.DrawRectangle(wxPoint(monControleur->GetFrame()->m_PointTmp1->x, monControleur->GetFrame()->m_PointTmp1->y), wxSize(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x,monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y)) ;}
+	//if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_RECT){dc.DrawRectangle(wxPoint(monControleur->GetFrame()->m_PointTmp1->x, monControleur->GetFrame()->m_PointTmp1->y), wxSize(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x,monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y)) ;}
 	
 	//CIRCLE AFFICHE quand il a pas le deuxième pt définit
 	if(monControleur->stepShape == 1 && monControleur->btnSelected == ID_BUTTON_CIRCLE){dc.DrawCircle(wxPoint(*monControleur->GetFrame()->m_PointTmp1), sqrt(pow(m_mousePoint.x-monControleur->GetFrame()->m_PointTmp1->x, 2) + pow(m_mousePoint.y-monControleur->GetFrame()->m_PointTmp1->y, 2))) ;}
 	//CIRCLE AFFICHE
-	if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_CIRCLE){dc.DrawCircle(wxPoint(*monControleur->GetFrame()->m_PointTmp1), sqrt(pow(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x, 2) + pow(monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y, 2))) ;}
+	//if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_CIRCLE){dc.DrawCircle(wxPoint(*monControleur->GetFrame()->m_PointTmp1), sqrt(pow(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x, 2) + pow(monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y, 2))) ;}
 	
-	//A FAIRE REAFICHER TOUT SELOint col_red = frame->GetControlPanel()->GetSliderColorREDValue() ;
-
-
-
+	///Affichage du curseur///
 	dc.SetBrush(*wxWHITE);
-	dc.SetPen(*wxRED);
+	//dc.SetPen(*wxRED);
 	dc.DrawCircle(wxPoint(m_mousePoint),5);
 
 	if (check)
@@ -841,5 +833,11 @@ void MonControleur::AddCercle(){
 MyFrame* MonControleur::GetFrame(){
 	return frame;
 } 
+
+void MonControleur::AfficheFormeSaved(wxClientDC dc){
+	for(Forme forme : dessin->getVector()){
+		forme->draw(dc);
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////////
