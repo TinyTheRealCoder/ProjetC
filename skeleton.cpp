@@ -35,17 +35,28 @@
 #include <wx/image.h>
 #include <wx/file.h>
 #include <wx/bitmap.h>
+#include <bits/stdc++.h>
+#include <string> 
+#include <cstdlib>
+#include <iostream>
+#include <vector>
+#include <wx/stattext.h>
+#include <wx/statline.h>
 
 //------------------------------------------------------------------------
 // Some constants
 //------------------------------------------------------------------------
-#define APPLICATION_WIDTH	600
-#define APPLICATION_HEIGHT	500 
+#define APPLICATION_WIDTH	900
+#define APPLICATION_HEIGHT	800 
 #define WIDGET_PANEL_WIDTH	150
 #define WIDGET_Y0			30
-#define WIDGET_Y1			70
-#define WIDGET_Y_STEP		90
+#define WIDGET_Y_LINE		70
+#define WIDGET_Y_RECT		110
+#define WIDGET_Y_CIRCLE		150
+#define WIDGET_Y_STEP		70
 #define APP_NAME "M1102 Skeleton 1.0"
+
+using namespace std;
 
 //------------------------------------------------------------------------
 // Some enums for widgets
@@ -57,10 +68,58 @@ enum
 	ID_LOAD,
 	ID_SAVE,
 	ID_BUTTON1,
-	ID_BUTTON2,
-	ID_SLIDER1,
+	ID_BUTTON_LINE,
+	ID_BUTTON_RECT,
+	ID_BUTTON_CIRCLE,
+	ID_SLIDER_TRANSPARENCY,
+	ID_SLIDER_RED,
+	ID_SLIDER_BLUE,
+	ID_SLIDER_GREEN,
+	ID_COLOUR_PICKER,
 	ID_CHECKBOX1
 };
+
+class MyFrame;
+
+//------------------------------------------------------------------------
+// CONTROLEUR
+//------------------------------------------------------------------------
+class MonControleur{
+	
+	public :
+
+	//Constructeurs destructeurs
+	MonControleur();
+	~MonControleur();
+	
+	//Fonctions
+	void ResetPts();
+	void SetPts(int stepPt, int x, int y);
+	MyFrame* GetFrame();
+
+	//Etat des boutons
+	int btnSelected = 0;
+
+	//Etapes de creation d'une forme
+	int stepShape = 0;
+
+	//Slider Value
+	int sliderTransparency = 0;
+
+	//Points Temporaires Coordonées
+	int x1 = 0;
+	int y1 = 0;
+	int x2 = 0;
+	int y2 = 0;
+	int x3 = 0;
+	int y3 = 0;
+	
+	private :
+		MyFrame* frame;
+
+};
+//Definition de la variable globale controleur
+  MonControleur *monControleur;
 
 //------------------------------------------------------------------------
 // The class declarations
@@ -83,12 +142,6 @@ public:
 	void OpenFile(wxString fileName) ;
 	void SaveFile(wxString fileName) ;
 
-	//Var
-	int btnSelected = 0;
-	bool stepLine = false;
-	wxPoint m_PointLinebase;
-	wxPoint m_Point2Linebase;
-
 private:
 	void OnMouseMove(wxMouseEvent &event) ;
 	void OnMouseLeftDown(wxMouseEvent &event) ;
@@ -104,6 +157,9 @@ class MyControlPanel: public wxPanel
 public:
 	MyControlPanel( wxWindow *parent ) ;
 	int GetSliderValue() {return m_slider->GetValue() ;} ;
+	int GetSliderColorREDValue() {return m_slider_red->GetValue() ;} ;
+	int GetSliderColorGREENValue() {return m_slider_green->GetValue() ;} ;
+	int GetSliderColorBLUEValue() {return m_slider_blue->GetValue() ;} ;
 	bool GetCheckBoxValue() {return m_checkBox->GetValue() ;} ;
 
 private:
@@ -112,6 +168,9 @@ private:
 	void OnCheckBox(wxCommandEvent &event) ;
 	wxButton* m_button ;
 	wxSlider* m_slider ;
+	wxSlider* m_slider_red ;
+	wxSlider* m_slider_green ;
+	wxSlider* m_slider_blue ;
 	wxCheckBox* m_checkBox ;
 };
 
@@ -123,6 +182,15 @@ public:
 	MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
 	MyControlPanel* GetControlPanel(){return m_controlPanel ;} ;
 	void RefreshDrawing(){m_drawingPanel->Refresh() ;} ;
+	
+	//Points temporaires
+	wxPoint* m_PointTmp1;
+	wxPoint* m_PointTmp2;
+	wxPoint* m_PointTmp3;
+	
+	//Fonctions
+	void ResetPts();
+	void SetPts(int stepPt, int x, int y);
 
 protected:
 	void OnQuit(wxCommandEvent& event);
@@ -134,6 +202,7 @@ protected:
 
 	MyControlPanel *m_controlPanel; // the panel with controls
 	MyDrawingPanel *m_drawingPanel; // the panel in which we draw
+
 } ;
 
 //************************************************************************
@@ -154,26 +223,65 @@ MyControlPanel::MyControlPanel(wxWindow *parent) : wxPanel(parent)
 	SetSize(wxRect(wxPoint(0,0), wxPoint(WIDGET_PANEL_WIDTH, h))) ;
 	SetBackgroundColour(*wxLIGHT_GREY) ;
 
-	//Ajout d'un bouton (Exemple)
+	//Texte entete outils
 	y = WIDGET_Y0 ;
-	m_button = new wxButton(this, ID_BUTTON1, wxT("Click me"), wxPoint(10, y)) ;
-	Bind(wxEVT_BUTTON, &MyControlPanel::OnButton, this, ID_BUTTON1) ;
+	wxStaticText* textOutils = new wxStaticText(this, wxID_ANY, wxT("Outils"), wxPoint(10, y)) ;
 	
 	//Ajout d'un bouton (Pinceau)
-	y = WIDGET_Y1 ; //Emplacement dans le panneau en fonction de la verticalité
-	m_button = new wxButton(this, ID_BUTTON2, wxT("Pinceau"), wxPoint(10, y)) ;
-	Bind(wxEVT_BUTTON, &MyControlPanel::OnButton, this, ID_BUTTON2) ;
+	y = WIDGET_Y_LINE ; //Emplacement dans le panneau en fonction de la verticalité
+	m_button = new wxButton(this, ID_BUTTON_LINE, wxT("Ligne"), wxPoint(10, y)) ;
+	Bind(wxEVT_BUTTON, &MyControlPanel::OnButton, this, ID_BUTTON_LINE) ;
 	
-	y+= WIDGET_Y_STEP ;
-	wxStaticText* text1 = new wxStaticText(this, wxID_ANY, wxT("Radius"), wxPoint(10, y)) ;
+	//Ajout d'un bouton (Rectangle)
+	y = WIDGET_Y_RECT ; //Emplacement dans le panneau en fonction de la verticalité
+	m_button = new wxButton(this, ID_BUTTON_RECT, wxT("Rectangle"), wxPoint(10, y)) ;
+	Bind(wxEVT_BUTTON, &MyControlPanel::OnButton, this, ID_BUTTON_RECT) ;
+	
+	//Ajout d'un bouton (Cercle)
+	y = WIDGET_Y_CIRCLE ; //Emplacement dans le panneau en fonction de la verticalité
+	m_button = new wxButton(this, ID_BUTTON_CIRCLE, wxT("Circle"), wxPoint(10, y)) ;
+	Bind(wxEVT_BUTTON, &MyControlPanel::OnButton, this, ID_BUTTON_CIRCLE) ;
+
+	y+= 50 ;
+	wxStaticLine *sline1 = new wxStaticLine(this, wxID_ANY, wxPoint(20, y), wxSize(100,2));
 	
 	y+= 15 ;
-	m_slider = new wxSlider(this, ID_SLIDER1, 10, 2, 100, wxPoint(10, y), wxSize(100,20)) ;
-	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER1) ;	
+	wxStaticText* text1 = new wxStaticText(this, wxID_ANY, wxT("Transparency"), wxPoint(10, y)) ;
+	
+	y+= 30 ;
+	m_slider = new wxSlider(this, ID_SLIDER_TRANSPARENCY, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
+	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER_TRANSPARENCY) ;	
+
+	y+= 50 ;
+	wxStaticLine *sline2 = new wxStaticLine(this, wxID_ANY, wxPoint(20, y), wxSize(100,2));
+	
+	y+= 15 ;
+	wxStaticText* textColor = new wxStaticText(this, wxID_ANY, wxT("Color"), wxPoint(10, y)) ;
+	//wxClientDC dc(this);	
+	//dc.SetBrush(wxColour(77,0,77,255));
+    //wxRect* rect_color = new wxRect(wxPoint(70,y), wxPoint(80, y+10));
+
+	y+= 30 ;
+	m_slider_red = new wxSlider(this, ID_SLIDER_RED, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
+	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER_RED) ;	
+
+	y+= 40 ;
+	m_slider_green = new wxSlider(this, ID_SLIDER_GREEN, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
+	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER_GREEN) ;	
+
+	y+= 40 ;
+	m_slider_blue = new wxSlider(this, ID_SLIDER_BLUE, 10, 2, 255, wxPoint(10, y), wxSize(100,20), wxSL_LABELS) ;
+	Bind(wxEVT_SCROLL_THUMBTRACK, &MyControlPanel::OnSlider, this, ID_SLIDER_BLUE) ;
+	//https://www.wxishiko.com/wxWidgetsTutorials/wxcolourpickerctrl.html
+	
+	y+= 50 ;
+	wxStaticLine *sline3 = new wxStaticLine(this, wxID_ANY, wxPoint(20, y), wxSize(100,2));
 	
 	y+= WIDGET_Y_STEP ;
 	m_checkBox = new wxCheckBox(this, ID_CHECKBOX1, "Show (x,y)", wxPoint(10, y), wxSize(100,20)) ;
 	Bind(wxEVT_CHECKBOX, &MyControlPanel::OnCheckBox, this, ID_CHECKBOX1) ;	
+
+
 }
 
 //------------------------------------------------------------------------
@@ -184,16 +292,33 @@ void MyControlPanel::OnButton(wxCommandEvent &event)
 //	wxMessageBox(wxString::FromAscii(s)) ; // call a C function located in the sample.cp module
 //	free(s) ;
 
-	btnSelected = event.GetId();
-	switch(btnSelected){
-		case ID_BUTTON2 :
-			//A chaque nouveau pinceau on definit son action
-			wxMessageBox(wxT("Pinceau activé")) ;
+	//On recupère l'id du btn qui viens d'etre cliqué
+	monControleur->btnSelected = event.GetId();
+
+	//On affiche quel btn viens d'etre selectioné avec une pop up
+	switch(monControleur->btnSelected){
+		case ID_BUTTON_LINE :
+			//A chaque nouveau ligne on definit son action
+			wxMessageBox(wxT("Ligne activé")) ;
+			break;
+		case ID_BUTTON_RECT :
+			//A chaque nouveau rectangle on definit son action
+			wxMessageBox(wxT("Rectangle activé")) ;
+			break;
+		case ID_BUTTON_CIRCLE :
+			//A chaque nouveau rectangle on definit son action
+			wxMessageBox(wxT("Cercle activé")) ;
 			break;
 		default:
 			wxMessageBox(wxT("Bouton inutilisé")) ;
 			break;
 	}
+
+	//Suppression des formes entamés et non finies
+	monControleur->stepShape = 0;
+	monControleur->ResetPts();
+
+	Refresh();
 
 }
 
@@ -254,22 +379,56 @@ void MyDrawingPanel::OnMouseLeftDown(wxMouseEvent &event)
 	m_onePoint.x = event.m_x ;
 	m_onePoint.y = event.m_y ;
 
-	switch(btnSelected){
-		case ID_BUTTON2 :
+	
+	switch(monControleur->btnSelected){
+		case ID_BUTTON_LINE :
 			//A chaque nouveau pinceau on definit son action
-			if(!stepLine){
-				m_PointLinebase = m_onePoint.x;
-				stepLine = true;
+			if(monControleur->stepShape == 0){
+				monControleur->ResetPts();
+				monControleur->SetPts(monControleur->stepShape, m_onePoint.x, m_onePoint.y);
+				monControleur->stepShape++;
 			}
 			else{
-				m_Point2Linebase = m_onePoint.y;
-				stepLine = false;
+				monControleur->SetPts(monControleur->stepShape, m_onePoint.x, m_onePoint.y);
+				monControleur->stepShape = 0;
+			}
+			break;
+		case ID_BUTTON_RECT :
+			//A chaque nouveau rectangle on definit son action
+			if(monControleur->stepShape == 0){
+				monControleur->ResetPts();
+				monControleur->SetPts(monControleur->stepShape, m_onePoint.x, m_onePoint.y);
+				monControleur->stepShape++;
+			}
+			else{
+				monControleur->SetPts(monControleur->stepShape, m_onePoint.x, m_onePoint.y);
+				monControleur->stepShape = 0;
+			}
+			break;
+		case ID_BUTTON_CIRCLE :
+			//A chaque nouveau cercle on definit son action
+			if(monControleur->stepShape == 0){
+				monControleur->ResetPts();
+				monControleur->SetPts(monControleur->stepShape, m_onePoint.x, m_onePoint.y);
+				monControleur->stepShape++;
+			}
+			else{
+				monControleur->SetPts(monControleur->stepShape, m_onePoint.x, m_onePoint.y);
+				//CREATION
+				monControleur->stepShape = 0;
 			}
 			break;
 		default:
 			break;
 	}
 
+	/*
+	wxClientDC dc(this);	
+	wxPoint* m2 = new wxPoint();;
+	m2->x = m_mousePoint.x + 50;
+	m2->y = m_mousePoint.y + 50;
+	dc.DrawLine(m_mousePoint, m_onePoint) ;
+	*/
 
 	Refresh() ; // send an event that calls the OnPaint method
 }
@@ -283,16 +442,46 @@ void MyDrawingPanel::OnPaint(wxPaintEvent &event)
 {
 	// read the control values
 	MyFrame* frame =  (MyFrame*)GetParent() ;
-	int radius = frame->GetControlPanel()->GetSliderValue() ;
+	int transparency = frame->GetControlPanel()->GetSliderValue() ;
 	bool check = frame->GetControlPanel()->GetCheckBoxValue() ;
+	
+	int col_red = frame->GetControlPanel()->GetSliderColorREDValue() ;
+	int col_green = frame->GetControlPanel()->GetSliderColorGREENValue() ;
+	int col_blue = frame->GetControlPanel()->GetSliderColorBLUEValue() ;
 
 	// then paint
 	wxPaintDC dc(this);	
+
+
+	
+	dc.SetBrush(wxColour(col_red,col_green,col_blue,transparency));
 		
-	dc.DrawLine(m_mousePoint, m_onePoint) ;
-	if(m_PointLinebase != NULL && m_Point2Linebase != NULL){dc.DrawLine(m_PointLinebase, m_Point2Linebase) ;}
-	dc.DrawRectangle(wxPoint(m_onePoint.x-radius/2, m_onePoint.y-radius/2), wxSize(radius,radius)) ;
-	dc.DrawCircle(wxPoint(m_mousePoint), radius/2) ;
+	//LINE AFFICHE quand il a pas le deuxième pt définit
+	if(monControleur->stepShape == 1 && monControleur->btnSelected == ID_BUTTON_LINE){dc.DrawLine(m_mousePoint, m_onePoint) ;}
+	//LINE AFFICHE
+	if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_LINE){dc.DrawLine(*monControleur->GetFrame()->m_PointTmp1, *monControleur->GetFrame()->m_PointTmp2) ;}
+
+	//RECT AFFICHE quand il a pas le deuxième pt définit
+	if(monControleur->stepShape == 1 && monControleur->btnSelected == ID_BUTTON_RECT){dc.DrawRectangle(wxPoint(monControleur->GetFrame()->m_PointTmp1->x, monControleur->GetFrame()->m_PointTmp1->y), wxSize(m_mousePoint.x-monControleur->GetFrame()->m_PointTmp1->x,m_mousePoint.y-monControleur->GetFrame()->m_PointTmp1->y)) ;}
+	//RECT AFFICHE
+	if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_RECT){dc.DrawRectangle(wxPoint(monControleur->GetFrame()->m_PointTmp1->x, monControleur->GetFrame()->m_PointTmp1->y), wxSize(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x,monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y)) ;}
+	
+	//CIRCLE AFFICHE quand il a pas le deuxième pt définit
+	if(monControleur->stepShape == 1 && monControleur->btnSelected == ID_BUTTON_CIRCLE){dc.DrawCircle(wxPoint(*monControleur->GetFrame()->m_PointTmp1), sqrt(pow(m_mousePoint.x-monControleur->GetFrame()->m_PointTmp1->x, 2) + pow(m_mousePoint.y-monControleur->GetFrame()->m_PointTmp1->y, 2))) ;}
+	//CIRCLE AFFICHE
+	if(monControleur->GetFrame()->m_PointTmp1 != nullptr && monControleur->GetFrame()->m_PointTmp2 != nullptr && monControleur->btnSelected == ID_BUTTON_CIRCLE){dc.DrawCircle(wxPoint(*monControleur->GetFrame()->m_PointTmp1), sqrt(pow(monControleur->GetFrame()->m_PointTmp2->x-monControleur->GetFrame()->m_PointTmp1->x, 2) + pow(monControleur->GetFrame()->m_PointTmp2->y-monControleur->GetFrame()->m_PointTmp1->y, 2))) ;}
+	
+	//A FAIRE REAFICHER TOUT SELON LORDRE
+
+	dc.SetBrush(*wxWHITE);
+	dc.DrawCircle(wxPoint(m_mousePoint), 10/2) ;
+
+	dc.SetBrush(*wxBLACK);
+	dc.DrawRectangle(wxPoint(10,10), wxSize(20,20));
+	dc.SetBrush(wxColour(col_red,col_green,col_blue,255));
+	dc.DrawRectangle(wxPoint(12,12), wxSize(16,16));
+
+	
 	
 	if (check)
 	{
@@ -308,8 +497,28 @@ void MyDrawingPanel::OpenFile(wxString fileName)
 {
 	// just to open (and close) any file 
 	FILE* f = fopen(fileName, "r") ;
+   	char s[81];
 	if (f)
 	{
+		/*Abandon temporaire
+		//On boucle sur tout le dossier
+		while(!feof(f))
+        {
+			int cx;
+			fscanf( f, "cx=\"%d\"", &cx);
+			printf("%i",test);
+			fflush(stdout);
+			//exit(0);
+
+
+			//fgets(s,10,f);
+			if(strcmp(s,"width") == 0){
+				printf( "%s\n", "YEAY" );
+			}
+			printf( "%s\n", s );
+			//printf( "%s\n", s[0-5] );
+        }*/
+
 		wxMessageBox(wxT("The file was opened then closed")) ;
 		fclose(f) ;
 	}
@@ -319,13 +528,34 @@ void MyDrawingPanel::OpenFile(wxString fileName)
 void MyDrawingPanel::SaveFile(wxString fileName)
 //------------------------------------------------------------------------
 {
+	//TMP 
+	//MyApp* myApp = wxApp();
+
 	// just to create a tiny file
 	FILE* f = fopen(fileName, "w") ;
 	if (!f)
 		wxMessageBox(wxT("Cannot save file"));
 	else
 	{
-		fprintf(f, "S1102 software can create and write a file") ;
+		//La string qui va acceuillir toutes nos balises
+		stringstream ss;
+
+		//Entete du fichier
+		ss << "<svg width=\""<< monControleur->GetFrame()->m_width << "\" height=\"" << "\">" ;
+
+		//On remplie avec les formes
+		//ss << "<rect width=\"100%\" height=\"100%\" fill=\"red\" />";
+		//RAJOUT DE METHODE TOSTRING POUR CHAQUE FORME
+
+		//Fin du svg
+		ss << "</svg>";
+
+		//On passe le tout dans le bon format
+		string str = ss.str();
+		char const *pchar = str.c_str();  //use char const* as target type
+
+		//On ecrit dans le fichier
+		fprintf(f, pchar) ;
 		wxMessageBox(wxT("The file was saved")) ;
 		fclose(f) ;
 	}
@@ -424,6 +654,40 @@ void MyFrame::OnSize(wxSizeEvent &event)
 	m_drawingPanel->SetSize(wxRect(wxPoint(WIDGET_PANEL_WIDTH,0), wxPoint(w, h))) ;
 }
 
+//------------------------------------------------------------------------
+void MyFrame::ResetPts()
+//------------------------------------------------------------------------
+{
+	m_PointTmp1 = nullptr;
+	m_PointTmp2 = nullptr;
+	m_PointTmp3 = nullptr;
+}
+
+//------------------------------------------------------------------------
+void MyFrame::SetPts(int stepPt, int x, int y)
+//------------------------------------------------------------------------
+{
+	switch(stepPt){
+		case 0:
+			m_PointTmp1 = new wxPoint();
+			m_PointTmp1->x = x;
+			m_PointTmp1->y = y;
+			break;
+		case 1:
+			m_PointTmp2 = new wxPoint();
+			m_PointTmp2->x = x;
+			m_PointTmp2->y = y;
+			break;
+		case 2:
+			m_PointTmp3 = new wxPoint();
+			m_PointTmp3->x = x;
+			m_PointTmp3->y = y;
+			break;
+		default:
+			break;
+	}
+}
+
 //************************************************************************
 //************************************************************************
 // Application class
@@ -436,8 +700,48 @@ IMPLEMENT_APP(MyApp) // macro that contains the main() function
 bool MyApp::OnInit()
 //------------------------------------------------------------------------
 {
-	MyFrame *frame = new MyFrame(wxT(APP_NAME), wxDefaultPosition, wxSize(APPLICATION_WIDTH,APPLICATION_HEIGHT)) ;
-	frame->Show(true) ;
-	SetTopWindow(frame) ;
+	monControleur = new MonControleur();
+	SetTopWindow(monControleur->GetFrame()) ;
 	return true ;
 }
+
+//////////////////////////////////////////////////////////////////////////////
+
+MonControleur::MonControleur(){
+	frame = new MyFrame(wxT(APP_NAME), wxDefaultPosition, wxSize(APPLICATION_WIDTH,APPLICATION_HEIGHT)) ;
+	frame->Show(true) ;
+}
+
+MonControleur::~MonControleur(){
+	frame = nullptr;
+}
+
+void MonControleur::ResetPts(){
+	frame->ResetPts();
+} 
+
+void MonControleur::SetPts(int stepPt, int x, int y){
+	switch(stepPt){
+		case 0:
+			x1 = x;
+			y1 = y;
+			break;
+		case 1:
+			x2 = x;
+			y2 = y;
+			break;
+		case 2:
+			x3 = x;
+			y3 = y;
+			break;
+		default:
+			break;
+	}
+	frame->SetPts(stepPt, x, y);
+} 
+
+MyFrame* MonControleur::GetFrame(){
+	return frame;
+} 
+
+//////////////////////////////////////////////////////////////////////////////
