@@ -33,6 +33,8 @@ public:
     int GetY1();
     int GetY2();
 
+    void draw(wxClientDC drawC) override;
+
 private:    // Could be protected
     Point* p1;
     Point* p2;

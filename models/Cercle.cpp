@@ -1,9 +1,26 @@
 #include "Cercle.h"
+#include "Forme.h"
 #include <iostream>
 #include <cstdlib>
 
 #define _USE_MATH_DEFINES   // To include PI value
 #include <math.h>
+
+#ifndef WX_PRECOMP
+    #include "wx/wx.h"
+#endif
+
+#include<wx/filedlg.h>
+#include <wx/image.h>
+#include <wx/file.h>
+#include <wx/bitmap.h>
+#include <bits/stdc++.h>
+#include <string> 
+#include <cstdlib>
+#include <iostream>
+#include <vector>
+#include <wx/stattext.h>
+#include <wx/statline.h>
 
 using namespace std;    // jamais dans un .h(pp) !
 
@@ -64,6 +81,11 @@ Cercle &Cercle::operator=(const Cercle &other)
     m_radius = other.m_radius;
     m_IndProfond = other.m_IndProfond;
     return *this;
+}
+
+void Cercle::draw(wxClientDC drawC) 
+{	
+    drawC.DrawCircle(wxPoint(m_center.GetX(),m_center.GetY()),(m_radius));
 }
 /*
 // Calcul de Surface en utilisant M_PI de #include <math.h>

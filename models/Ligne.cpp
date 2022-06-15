@@ -91,6 +91,11 @@ int Ligne::GetY2()
     return p2->GetY();
 }
 
+void Ligne::draw(wxClientDC drawC) 
+{	
+    drawC.DrawLine(p1->GetX(),p2->GetX(),p1->GetY(),p2->GetY());
+}
+
 /*
 //-------------------------------------------
 void Ligne::Display() const
