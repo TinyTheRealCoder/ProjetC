@@ -22,7 +22,7 @@ public:
     std::string GetLabel() const;
     
     void SetIndProfond( int IndProfond);
-    itn GetIndProfond(); 
+    int GetIndProfond(); 
 
     // Méthodes virtuelles à déclarer dans les classes filles
     // On déclare la méthode en inline (i.e. le code est directement
