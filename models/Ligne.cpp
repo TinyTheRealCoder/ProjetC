@@ -12,16 +12,16 @@ int Ligne::nbLigne = 0;
 //Default constructor
 Ligne::Ligne() : Forme()
 {
-    p1 = new Point();
-    p2 = new Point();
+    //p1 = new Point();
+    //p2 = new Point();
 }
 
 //Constructor
 
-Ligne::Ligne(const Point& p1Tmp, const Point& p2Tmp, int IndProfond, std::string& label) : Forme (label, IndProfond)
+Ligne::Ligne(const Point& p1Tmp, const Point& p2Tmp, int IndProfond, const std::string& label) : Forme (label, IndProfond)
 {
-    *p1 = p1Tmp;
-    *p2 = p2Tmp;
+    p1 = p1Tmp;
+    p2 = p2Tmp;
 
     //Point center((x1 + x2)/2, (y1 + y2)/2);
     //Forme(string("Ligne"), center);
@@ -32,10 +32,10 @@ Ligne::Ligne(const Point& p1Tmp, const Point& p2Tmp, int IndProfond, std::string
 
 Ligne::Ligne(const Ligne& copy): Forme(copy.GetLabel(), copy.GetIndProfond())
 {
-    p1->SetX(copy.p1->GetX());
-    p2->SetX(copy.p2->GetX());
-    p1->SetY(copy.p1->GetY());
-    p2->SetY(copy.p2->GetY());
+    p1.SetX(copy.p1.GetX());
+    p2.SetX(copy.p2.GetX());
+    p1.SetY(copy.p1.GetY());
+    p2.SetY(copy.p2.GetY());
 }
 
 //Destructeur
@@ -51,44 +51,44 @@ Ligne::~Ligne()
 
 void Ligne::SetX1(int x)
 {
-    p1->SetX(x);
+    p1.SetX(x);
 }
 
 void Ligne::SetX2(int x)
 {
-    p2->SetX(x);
+    p2.SetX(x);
 }
 
 void Ligne::SetY1(int y)
 {
-    p1->SetY(y);
+    p1.SetY(y);
 }
 
 void Ligne::SetY2(int y)
 {
-    p2->SetY(y);
+    p2.SetY(y);
 }
 
 //GETTERS
 
 int Ligne::GetX1()
 {
-    return p1->GetX();
+    return p1.GetX();
 }
 
 int Ligne::GetX2()
 {
-    return p2->GetX();
+    return p2.GetX();
 }
 
 int Ligne::GetY1()
 {
-    return p1->GetY();
+    return p1.GetY();
 }
 
 int Ligne::GetY2()
 {
-    return p2->GetY();
+    return p2.GetY();
 }
 
 /*

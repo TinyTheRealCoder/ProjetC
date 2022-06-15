@@ -10,7 +10,7 @@ class Ligne : public Forme
 public:
     // Construction par défaut, par copie, avec paramètres
     Ligne();
-    Ligne(const Point& p1, const Point& p2, int IndProfond, std::string& label);
+    Ligne(const Point& p1, const Point& p2, int IndProfond, const std::string& label);
     Ligne(const Ligne& copy);
     
     // Destructeur virtuel car on peut dériver cette classe
@@ -34,8 +34,8 @@ public:
     int GetY2();
 
 private:    // Could be protected
-    Point* p1;
-    Point* p2;
+    Point p1;
+    Point p2;
     static int nbLigne;
 
 };
